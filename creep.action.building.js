@@ -13,8 +13,9 @@ action.isAddableAction = function(creep){
 };
 action.newTarget = function(creep){
     var that = this;
+
     var isAddable = target => that.isAddableTarget(target);
-    return _.find(creep.room.constructionSites, isAddable);
+    return _.find(creep.room.constructionSites.sort((a,b) => b.priority - a.priority), isAddable);
 };
 action.work = function(creep){
     return creep.build(creep.target);

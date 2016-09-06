@@ -7,6 +7,7 @@ Creep.extend();
 Room.extend();  
 Spawn.extend();
 FlagDir.extend();
+ConstructionSite.extend();
 
 module.exports.loop = function () {
     FlagDir.loop();
