@@ -56,6 +56,12 @@ action.newTarget = function(creep){
     return target;
 };
 action.work = function(creep){
+
+    if ( creep.carry.energy > creep.carryCapacity*0.2) {
+        let cont = creep.pos.findInRange(creep.room.constructionSites, 1)
+        if (cont.length >0) creep.build(cont[0]);
+    }
+
     if( creep.data.creepType == "miner") {
         if( creep.carry.energy > creep.carryCapacity*0.5 ) {
             let cont = creep.pos.findInRange(creep.room.chargeables, 1, {
@@ -63,7 +69,10 @@ action.work = function(creep){
                     return _.sum(c.store) < c.storeCapacity;
                 }
             });
-            if( cont.length > 0 ) creep.transfer(cont[0], RESOURCE_ENERGY);
+
+            if( cont[0].hits <  LIMIT_URGENT_REPAIRING * 20)creep.repair(cont[0]);
+            else if( cont.length >0 ) creep.transfer(cont[0], RESOURCE_ENERGY);
+
         }
         let result = creep.harvest(creep.target);
         if (result == ERR_NOT_ENOUGH_RESOURCES) result = OK;
