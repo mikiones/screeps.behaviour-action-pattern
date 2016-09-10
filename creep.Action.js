@@ -97,7 +97,35 @@ var Action = function(actionName){
             } else creep.say('NO PATH!');
         }
     };
+    this.getRoomPath = function(creep, target) {
+        var route = Game.map.findRoute(creep.room, target.roomName, {
+            routeCallback(roomName) {
+                let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+                let isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
+                let isMyRoom = Game.rooms[roomName] &&
+                    Game.rooms[roomName].controller &&
+                    Game.rooms[roomName].controller.my;
+                let isPrivateerRoom = FlagDir.filter(FLAG_COLOR.invade.exploit).map(f => f.roomName).includes(roomName);
+                if (isHighway || isMyRoom || isPrivateerRoom) {
+                    return 1;
+                } else {
+                    return 30;
+                }
+            }
+        });
+        return route;
+    },
+
     this.getPath = function(creep, target, ignoreCreeps) {
+
+        //defrent rooms? choose best routce main, marked or highways
+        if (target && creep.pos.roomName != target.roomName) {
+            let route = this.getRoomPath(creep, target);
+
+            if (route.length >0 )
+                target = new RoomPosition(25,25,route[0].room);
+        }
+
         let path = creep.room.findPath(creep.pos, target, {
             serialize: true, 
             ignoreCreeps: ignoreCreeps
