@@ -239,6 +239,23 @@ var mod = {
                     return this._creeps;
                 }
             },
+            'hostileStructres':
+            {
+                configurable:true,
+                get:function () {
+                    if (_.isUndefined(this._hostileStructures) ){
+                        this._hostileStructures = this.find(FIND_HOSTILE_STRUCTURES);
+                    }
+                    return this._hostileStructures
+                }
+            },
+            'stealables': {
+                configurable:true,
+                get:function () {
+                    return this.hostileStructres.filter(s=> s.energy>0);
+                }
+
+            },
             'hostiles': {
                 configurable: true,
                 get: function() {

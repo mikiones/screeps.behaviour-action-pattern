@@ -25,6 +25,12 @@ var Action = function(actionName){
     this.newTarget = function(creep){
         return null;
     };
+    this.isInEnemyRoom = function (target, creep) {
+        let contrller = target.room.controller;
+        return (contrller != null && contrller.my == false
+        && ((contrller.reservation == null) || contrller.reservation.username != creep.owner.username));
+
+    };
     this.step = function(creep){
         if(CHATTY) creep.say(this.name, SAY_PUBLIC);
         let range = creep.pos.getRangeTo(creep.target);
@@ -71,7 +77,13 @@ var Action = function(actionName){
                 if( moveResult == OK ) { // OK is no guarantee that it will move to the next pos. 
                     creep.data.moveMode = 'auto'; 
                 } else logErrorCode(creep, moveResult);
-            } else creep.say('NO PATH!');
+            } else{
+                creep.say('NO PATH!');
+                if (creep.data.targetId) {
+                    creep.data.targetId = null;
+                }
+            }
+
         } else if( creep.data.moveMode == 'auto' ) {
             // try again to use path.
             if( rangeToTarget > this.targetRange ) {
@@ -98,26 +110,31 @@ var Action = function(actionName){
             } else creep.say('NO PATH!');
         }
     };
+    this.gatRoomPath = function (creep, target) {
+        var route = Game.map.findRoute(creep.room, target.roomName, {
+            routeCallback(roomName) {
+                let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+                let isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
+                let isMyRoom = Game.rooms[roomName] &&
+                    Game.rooms[roomName].controller &&
+                    Game.rooms[roomName].controller.my;
+                let isExploitationRoom = FlagDir.find(FLAG_COLOR.invade.exploit, new RoomPosition(25, 28, roomName), true);
+                if (isHighway || isMyRoom || isExploitationRoom) {
+                    return 1;
+                } else {
+                    return 30;
+                }
+            }
+        });
+        return route;
+    };
+
     this.getPath = function(creep, target, ignoreCreeps) {
         //different rooms? choose best route through owned or exploitation rooms or highways
         if (creep.pos.roomName != target.roomName) {
-            var route = Game.map.findRoute(creep.room, target.roomName, {
-                routeCallback(roomName) {
-                    let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
-                    let isHighway = (parsed[1] % 10 === 0) || (parsed[2] % 10 === 0);
-                    let isMyRoom = Game.rooms[roomName] &&
-                        Game.rooms[roomName].controller &&
-                        Game.rooms[roomName].controller.my;
-                    let isExploitationRoom = FlagDir.find(FLAG_COLOR.invade.exploit, new RoomPosition(25, 28, roomName), true);
-                    if (isHighway || isMyRoom || isExploitationRoom) {
-                        return 1;
-                    } else {
-                        return 30;
-                    }
-                }
-            });
+            var route = this.gatRoomPath(creep, target);
             if ( route.length > 0 )
-                target = creep.pos.findClosestByRange(route[0].exit);
+                target = new RoomPosition(25,25,route[0].room)
         }
 
         let path = creep.room.findPath(creep.pos, target, {

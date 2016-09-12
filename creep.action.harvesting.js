@@ -4,7 +4,7 @@ action.isAddableAction = function(creep){
         !creep.room.population.typeCount['hauler'] || 
         creep.room.population.typeCount['hauler'] < 1); 
 };
-action.isAddableTarget = function(target){ 
+action.isAddableTarget = function(target){
     return (target.targetOf === undefined || 
         target.targetOf.length < (target.accessibleFields) || 
         !target.container );
@@ -13,17 +13,18 @@ action.isValidAction = function(creep){
     return ( _.sum(creep.carry) < creep.carryCapacity && 
     creep.room.sourceEnergyAvailable > 0 );
 };
-action.isValidTarget = function(target){
-    return (target != null && target.energy != null && target.energy > 0) && (target.targetOf === undefined || 
-        target.targetOf.length < (target.accessibleFields) || 
-        !target.container );
-};   
+action.isValidTarget = function(target, creep){
+    let cont = target.room.controller;
+    return (target != null && target.energy != null && target.energy > 0) && !this.isInEnemyRoom(target,creep);
+
+};
+
 action.newTarget = function(creep){
     let target = null;
     let sourceGuests = 999;
     for( var iSource = 0; iSource < creep.room.sources.length; iSource++ ){
         let source = creep.room.sources[iSource];
-        if( this.isValidTarget(source) && this.isAddableTarget(source) ){
+        if( this.isValidTarget(source, creep) && this.isAddableTarget(source) ){
             if( source.targetOf === undefined ) {
                 sourceGuests = 0;
                 target = source;
