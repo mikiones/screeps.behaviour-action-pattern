@@ -147,7 +147,7 @@ var Action = function(actionName){
     };
     this.validateActionTarget = function(creep, target){
         if( this.isValidAction(creep) ){ // validate target or new
-            if( !this.isValidTarget(target)){ 
+            if( !this.isValidTarget(target, creep)){
                 if( this.renewTarget ){ // invalid. try to find a new one...
                     creep.data.moveMode = null;
                     delete creep.data.path;
